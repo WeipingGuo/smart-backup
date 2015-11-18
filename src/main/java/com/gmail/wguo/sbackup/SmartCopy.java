@@ -32,9 +32,14 @@ package com.gmail.wguo.sbackup;
  */
 
 import java.nio.file.*;
+
 import static java.nio.file.StandardCopyOption.*;
+
 import java.nio.file.attribute.*;
+
 import static java.nio.file.FileVisitResult.*;
+
+import java.io.FileWriter;
 import java.io.IOException;
 import java.util.*;
 
@@ -43,6 +48,8 @@ import java.util.*;
  */
 
 public class SmartCopy {
+	
+	private static int totalFiles = 0;
 
     /**
      * Returns {@code true} if okay to overwrite a  file ("cp -i")
@@ -76,6 +83,7 @@ public class SmartCopy {
 	            try {
 	                Files.copy(source, target, options);
 	                Files.setLastModifiedTime(target, sourceTime);
+	                totalFiles++;
 	            } catch (IOException x) {
 	                System.err.format("Unable to copy: %s: %s%n", source, x);
 	            }
@@ -118,7 +126,7 @@ public class SmartCopy {
 
         public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException {
             copyFile(file, target.resolve(source.relativize(file)),
-                     prompt, preserve);
+                     prompt, preserve);          
             return CONTINUE;
         }
 
@@ -151,34 +159,49 @@ public class SmartCopy {
         System.exit(-1);
     }
 
+    private static final String logFile = "smart-copy.log";
+    
     public static void main(String[] args) throws IOException {
        
     	if (args.length  < 2){
     		usage();
     	}
     	
-        Path source = Paths.get(args[0]);
-        Path target = Paths.get(args[1]);
-        
-        if (!Files.isDirectory(source)){
-        	System.err.println("source must be a directory");
-        	System.exit(-1);
-        }
-
-        // make sure the target directory exists
-        if (!Files.exists(target)){
-        	Files.createDirectory(target);
-        }
-        
-        if (!Files.isDirectory(target)) {
-        	System.err.println("destination must be a directory");
-        	System.exit(-1);
-        }
-        
-        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
-        TreeCopier tc = new TreeCopier(source, target, false, true);
-        Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
-        
-        System.out.println("ALL DONE");
+    	FileWriter logger = new FileWriter(logFile, true);
+    	System.out.println("START: ==============" + new Date().toString() + " ================") ;
+    	logger.write("BACKING UP : ==============" + new Date().toString() + " ================\n") ;
+    	try {
+	        Path source = Paths.get(args[0]);
+	        Path target = Paths.get(args[1]);
+	        
+	        if (!Files.isDirectory(source)){
+	        	System.err.println("source must be a directory");
+	        	System.exit(-1);
+	        }
+	
+	        // make sure the target directory exists
+	        if (!Files.exists(target)){
+	        	Files.createDirectory(target);
+	        }
+	        
+	        if (!Files.isDirectory(target)) {
+	        	System.err.println("destination must be a directory");
+	        	System.exit(-1);
+	        }
+	        
+	        logger.write("SOURCE DIR : ==============" + source + "\n") ;
+	        logger.write("DEST DIR   : ==============" + target + "\n") ;
+	        	        
+	        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
+	        TreeCopier tc = new TreeCopier(source, target, false, true);
+	        Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
+	        
+	        System.out.println("TOTAL FILES COPIED: " + totalFiles);
+	        logger.write("TOTAL FILES COPIED: " + totalFiles + "\n");
+	        System.out.println("END: ==============" + new Date().toString() + " ================") ;
+	        logger.write("ALL DONE   : ==============" + new Date().toString() + " ================\n") ;
+    	} finally {
+    		logger.close();
+    	}
     }
 }
