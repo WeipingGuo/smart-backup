@@ -169,7 +169,8 @@ public class SmartCopy {
     	
     	FileWriter logger = new FileWriter(logFile, true);
     	System.out.println("START: ==============" + new Date().toString() + " ================") ;
-    	logger.write("BACKING UP : ==============" + new Date().toString() + " ================\n") ;
+    	logger.write("*************************************************************************\n") ;
+    	logger.write("BACKING UP  : " + new Date().toString() + "\n") ;
     	try {
 	        Path source = Paths.get(args[0]);
 	        Path target = Paths.get(args[1]);
@@ -189,17 +190,17 @@ public class SmartCopy {
 	        	System.exit(-1);
 	        }
 	        
-	        logger.write("SOURCE DIR : ==============" + source + "\n") ;
-	        logger.write("DEST DIR   : ==============" + target + "\n") ;
+	        logger.write("SOURCE DIR  : " + source + "\n") ;
+	        logger.write("DEST DIR    : " + target + "\n") ;
 	        	        
 	        EnumSet<FileVisitOption> opts = EnumSet.of(FileVisitOption.FOLLOW_LINKS);
 	        TreeCopier tc = new TreeCopier(source, target, false, true);
 	        Files.walkFileTree(source, opts, Integer.MAX_VALUE, tc);
 	        
-	        System.out.println("TOTAL FILES COPIED: " + totalFiles);
-	        logger.write("TOTAL FILES COPIED: " + totalFiles + "\n");
+	        System.out.println("TOTAL FILES COPIED: " + totalFiles);	        
 	        System.out.println("END: ==============" + new Date().toString() + " ================") ;
-	        logger.write("ALL DONE   : ==============" + new Date().toString() + " ================\n") ;
+	        logger.write("FILES COPIED: " + totalFiles + "\n");
+	        logger.write("ALL DONE    : " + new Date().toString() + "\n") ;
     	} finally {
     		logger.close();
     	}
